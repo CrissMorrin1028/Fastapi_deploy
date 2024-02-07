@@ -386,39 +386,45 @@ def recomendacion_juego(item_id):
     - Si ocurre un error al cargar el archivo de similitud, intenta calcular la similitud del coseno
       entre los productos y proporciona recomendaciones basadas en eso.
     """
-    # Abrir el archivo parquet en un DataFrame
+    # Leer el archivo parquet en un DataFrame
     data = pd.read_parquet('item_item.parquet')
-
-    # Si el dataframe está vacío, devolver un mensaje de error
-    if data.empty:
-        return {
-            "detail": [
-                {
-                    "loc": ["string", 0],
-                    "msg": "El DataFrame está vacío",
-                    "type": "value_error"
-                }
-            ]
-        }
-
-    # Si el item_id no existe en el DataFrame, devolver un mensaje de error
-    if item_id not in data['item_id'].values:
-        return {
-            "detail": [
-                {
-                    "loc": ["string", 0],
-                    "msg": "El item_id proporcionado no existe",
-                    "type": "value_error"
-                }
-            ]
-        }
-    # Esta excepción carga la matriz de similitud de items_similarity que contiene la operación de calcular la similitud del coseno 
+    
     try:
+        # Cargar la matriz de similitud de items_similarity
         with open('item_similarity.pkl', 'rb') as f:
             item_similarity_df = pickle.load(f)
+
+        print("Se cargó la matriz precalculada.")
+
     except Exception as e:
         print(f"Ocurrió un error al cargar el archivo: {e}")
+
         
+
+        # Si el dataframe está vacío, devolver un mensaje de error
+        if data.empty:
+            return {
+                "detail": [
+                    {
+                        "loc": ["string", 0],
+                        "msg": "El DataFrame está vacío",
+                        "type": "value_error"
+                    }
+                ]
+            }
+
+        # Si el item_id no existe en el DataFrame, devolver un mensaje de error
+        if item_id not in data['item_id'].values:
+            return {
+                "detail": [
+                    {
+                        "loc": ["string", 0],
+                        "msg": "El item_id proporcionado no existe",
+                        "type": "value_error"
+                    }
+                ]
+            }
+
         # Convertir la columna 'recommend' a valores numéricos
         data['recommend'] = data['recommend'].apply(lambda x: 1 if x else 0)
 
@@ -433,17 +439,31 @@ def recomendacion_juego(item_id):
 
         # Convertir los resultados en un DataFrame
         item_similarity_df = pd.DataFrame(item_similarity, index=matrix.index, columns=matrix.index)
-    
-    # Obtener los juegos similares al juego dado
-    similar_games = item_similarity_df[item_id].sort_values(ascending=False)
 
-    # Obtener los 5 juegos más similares
-    similar_games_ids = similar_games.head(6).index.tolist()[1:]  # Excluimos el primer juego porque es el mismo juego
+        print("Se calculó la matriz de similitud.")
 
-    # Crear un diccionario con los ids y los nombres de los juegos
-    recommended_games = {game_id: data[data['item_id'] == game_id]['item_name'].iloc[0] for game_id in similar_games_ids}
+    if 'item_similarity_df' not in locals():
+        # Obtener los juegos similares al juego dado
+        similar_games = item_similarity_df[item_id].sort_values(ascending=False)
 
-    return { "Juegos similares al id ingresado": recommended_games}
+        # Obtener los 5 juegos más similares
+        similar_games_ids = similar_games.head(6).index.tolist()[1:]  # Excluimos el primer juego porque es el mismo juego
+
+        # Crear un diccionario con los ids y los nombres de los juegos
+        recommended_games = {game_id: data[data['item_id'] == game_id]['item_name'].iloc[0] for game_id in similar_games_ids}
+
+        return {"Juegos similares al id ingresado": recommended_games}
+    else:
+        # Obtener los juegos similares al juego dado
+        similar_games = item_similarity_df[item_id].sort_values(ascending=False)
+
+        # Obtener los 5 juegos más similares
+        similar_games_ids = similar_games.head(6).index.tolist()[1:]  # Excluimos el primer juego porque es el mismo juego
+
+        # Crear un diccionario con los ids y los nombres de los juegos
+        recommended_games = {game_id: data[data['item_id'] == game_id]['item_name'].iloc[0] for game_id in similar_games_ids}
+
+        return {"Juegos similares al id ingresado": recommended_games}
   
 
 # SISTEMA DE RECOMENDACIÓN - USER-USER 

@@ -9,6 +9,7 @@ from surprise import Reader, Dataset, SVD
 from surprise.model_selection import train_test_split, GridSearchCV
 import pickle 
 
+
 app = FastAPI()
  
 @app.get("/")
@@ -61,3 +62,4 @@ def obtener_recomendacion_usuario(user_id: str):
     # Llama a la función lógica de recomendación de usuario
     recommended_games_user = recomendacion_usuario(user_id)
     return recommended_games_user
+  
