@@ -39,7 +39,7 @@ def usergenre(genero: str):
 def bestdeveloper(year: int):
     funcion_cuatro = best_developer_year(year)
     return funcion_cuatro
-
+ 
 # fUNCION 5
 @app.get("/developerreviews/{developer}")
 def developerreviews(desarrolladora: str):
